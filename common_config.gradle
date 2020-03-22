@@ -1,0 +1,166 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+project.ext {
+    compileSdkVersion = 29
+    buildToolsVersion = "29.0.2"
+    minSdkVersion = 14
+    targetSdkVersion = 29
+    applicationId = "com.bb.cy"
+    versionCode = 1;
+    versionName = "BB"
+
+    //是否需要多渠道打包
+    isMultiChanel = false
+    isDebug = false
+    isLib = false
+    //登录模块是否单独运行
+    isLoginApp = false
+
+    //设置App配置
+    setAppDefaultConfig = {
+        extension ->
+            extension.apply plugin: 'com.android.application'
+            extension.description "app"
+            setAndroidConfig extension.android
+            extension.android {
+                defaultConfig {
+                    flavorDimensions "versionCode"
+                }
+
+                buildTypes {
+                    debug {
+                        minifyEnabled false
+                    }
+                    release {
+                        minifyEnabled true
+                        zipAlignEnabled true
+                        shrinkResources true
+                        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                                'proguard-rules.pro'
+                    }
+                }
+
+                productFlavors {
+                    //开发环境
+                    develop {
+                        buildConfigField "int", "ENV_TYPE", "1"
+                        applicationId 'com.bb.cy.develop'
+                        manifestPlaceholders = [
+                                app_name: "BBDevlop",
+                                app_icon: "@drawable/ic_launcher_round"
+                        ]
+                    }
+                    //测试环境
+                    check {
+                        buildConfigField "int", "ENV_TYPE", "2"
+                        applicationId 'com.bb.cy.check'
+                        manifestPlaceholders = [
+                                app_name: "BBCheck",
+                                app_icon: "@drawable/ic_launcher_round"
+                        ]
+                    }
+                    //生产环境
+                    product {
+                        buildConfigField "int", "ENV_TYPE", "3"
+                        applicationId applicationId
+                        manifestPlaceholders = [
+                                app_name: "BB",
+                                app_icon: "@drawable/ic_launcher_round"
+                        ]
+                    }
+                }
+
+            }
+            setDependencies extension.dependencies
+    }
+
+    //设置Lib配置
+    setLibDefaultConfig = {
+        extension ->
+            extension.apply plugin: 'com.android.library'
+            extension.description "lib"
+            setAndroidConfig extension.android
+            extension.android {
+                defaultConfig {
+                    defaultPublishConfig 'release'
+                    publishNonDefault true
+                }
+            }
+            setDependencies extension.dependencies
+    }
+
+    setDefaultConfig = {
+        extension ->
+            setAndroidConfig extension.android
+            setDependencies extension.dependencies
+    }
+
+    //设置Android配置
+    setAndroidConfig = {
+        extension ->
+            extension.compileSdkVersion compileSdkVersion
+            extension.buildToolsVersion buildToolsVersion
+            extension.defaultConfig {
+                targetSdkVersion targetSdkVersion
+                minSdkVersion minSdkVersion
+                versionCode versionCode
+                versionName versionName
+
+                testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+                javaCompileOptions {
+                    annotationProcessorOptions {
+                        arguments = [AROUTER_MODULE_NAME: extension.project.getName()]
+                    }
+                }
+            }
+
+            extension.buildTypes {
+                debug {
+                    extension.defaultConfig { minSdkVersion 21 }
+                }
+                release {
+                    extension.defaultConfig { minSdkVersion 14 }
+                }
+            }
+
+            extension.dataBinding {
+                enabled = true
+            }
+
+            extension.project.tasks.whenTaskAdded { task ->
+                if (task.name.contains("lint")//不启动lint代码扫描潜在bug可以使用
+                        || task.name.equals("clean")
+                        || task.name.contains("Aidl") //项目中有用到aidl则不可以舍弃这个任务
+                        || task.name.contains("mockableAndroidJar")
+                        || task.name.contains("UnitTest")//用不到测试的时候就可以先关闭
+                        || task.name.contains("AndroidTest")//用不到测试的时候就可以先关闭
+                        || task.name.contains("Ndk")//用不到NDK和JNI的也关闭掉
+                        || task.name.contains("Jni")
+                ) {
+                    task.enabled = false
+                }
+            }
+    }
+
+    //设置依赖
+    setDependencies = {
+        extension ->
+            extension.implementation fileTree(dir: 'libs', include: ['*.jar'])
+            extension.implementation 'com.alibaba:arouter-api:1.5.0'
+            extension.annotationProcessor 'com.alibaba:arouter-compiler:1.2.2'
+            extension.implementation 'androidx.appcompat:appcompat:1.1.0'
+            extension.implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+            extension.implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'
+            extension.implementation 'com.trello.rxlifecycle2:rxlifecycle:2.2.2'
+            extension.implementation 'com.trello.rxlifecycle2:rxlifecycle-components:2.2.2'
+            extension.testImplementation 'junit:junit:4.12'
+            extension.androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+            extension.androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+            extension.implementation 'com.meituan.android.walle:library:1.1.6'
+
+            extension.implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
+            extension.implementation 'io.reactivex.rxjava2:rxjava:2.2.2'
+            extension.implementation 'com.orhanobut:logger:1.15'
+            extension.implementation 'com.google.code.gson:gson:2.8.5'
+    }
+}

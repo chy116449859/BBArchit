@@ -1,0 +1,2 @@
+include ':app', ':livedata-eventbus', ':common', ':login', ':base', ':network'
+rootProject.name='BBArchit'

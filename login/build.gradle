@@ -1,0 +1,29 @@
+apply from: "${rootProject.rootDir}/common_config.gradle"
+if (project.ext.isLoginApp) {
+    project.ext.setAppDefaultConfig project
+} else {
+    project.ext.setLibDefaultConfig project
+}
+
+android {
+
+    defaultConfig {
+        if (project.ext.isLoginApp) {
+            applicationId "com.bb.login"
+        }
+    }
+
+    sourceSets {
+        main {
+            if (project.ext.isLoginApp.toBoolean()) {
+                manifest.srcFile 'src/main/manifest/AndroidManifest.xml'
+            } else {
+                manifest.srcFile 'src/main/AndroidManifest.xml'
+            }
+        }
+    }
+}
+
+dependencies {
+
+}
